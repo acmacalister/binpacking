@@ -14,7 +14,7 @@ This library is a Go port inspired by JavaScript bin-packing libraries (such as 
 * Optional rotation of boxes (can be constrained per box).
 * Multiple placement strategies (heuristics) available:
     * Best Short Side Fit (BSSF)
-    * Best Long Side Fit (BLSF) - *Note: See implementation details below.*
+    * Best Long Side Fit (BLSF)
     * Best Area Fit (BAF)
     * Bottom Left (BL)
 * Tracks which boxes were successfully packed and which were left unpacked.
@@ -33,7 +33,7 @@ package main
 
 import (
 	"fmt"
-	"[github.com/acmacalister/binpacking](https://github.com/acmacalister/binpacking)" // Use the correct import path
+	"github.com/acmacalister/binpacking"
 )
 
 func main() {
