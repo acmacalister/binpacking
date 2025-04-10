@@ -2,6 +2,7 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/acmacalister/binpacking.svg)](https://pkg.go.dev/github.com/acmacalister/binpacking)
 [![Go Report Card](https://goreportcard.com/badge/github.com/acmacalister/binpacking)](https://goreportcard.com/report/github.com/acmacalister/binpacking)
+
 A 2D bin packing library for Go, designed to efficiently pack rectangles (boxes) into larger rectangles (bins). This library provides tools and algorithms to solve the classic two-dimensional bin packing problem, where the goal is to fit a set of items into the minimum number of containers.
 
 This library is a Go port inspired by JavaScript bin-packing libraries (such as [teamcurri/binpacking](https://github.com/teamcurri/binpacking)).
