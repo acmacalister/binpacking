@@ -6,15 +6,15 @@ import (
 
 // Bin represents a container for packing boxes.
 type Bin struct {
-	Width      int64
-	Height     int64
+	Width      float64
+	Height     float64
 	Boxes      []*Box                // Boxes placed in this bin
 	Placement  PlacementStrategyFunc // Strategy used for finding placement positions
 	FreeSpaces []*FreeSpaceBox       // List of available free rectangles
 }
 
 // NewBin creates a new Bin instance.
-func NewBin(width int64, height int64, placement PlacementStrategyFunc) *Bin {
+func NewBin(width float64, height float64, placement PlacementStrategyFunc) *Bin {
 	// Initialize FreeSpaces with one rectangle covering the entire bin
 	initialFreeSpace := FreeSpaceBox{Width: width, Height: height}
 
@@ -32,14 +32,14 @@ func NewBin(width int64, height int64, placement PlacementStrategyFunc) *Bin {
 }
 
 // Area returns the total area of the bin.
-func (b *Bin) Area() int64 {
+func (b *Bin) Area() float64 {
 	return b.Width * b.Height
 }
 
 // Efficiency calculates the percentage of the bin's area occupied by packed boxes.
 // Returns a float64 between 0 and 100.
 func (b *Bin) Efficiency() float64 {
-	boxesArea := int64(0)
+	boxesArea := float64(0)
 	for _, box := range b.Boxes {
 		boxesArea += box.Area()
 	}
@@ -48,13 +48,13 @@ func (b *Bin) Efficiency() float64 {
 		return 0.0 // Avoid division by zero
 	}
 	// Use float64 for calculation to get percentage
-	return (float64(boxesArea) * 100.0) / float64(binArea)
+	return boxesArea * 100.0 / binArea
 }
 
 // Label returns a string representation of the bin including dimensions and efficiency.
 func (b *Bin) Label() string {
 	// %.2f formats the float with 2 decimal places
-	return fmt.Sprintf("%dx%d %.2f%%", b.Width, b.Height, b.Efficiency())
+	return fmt.Sprintf("%fx%f %.2f%%", b.Width, b.Height, b.Efficiency())
 }
 
 // Insert attempts to place a box into the bin using the bin's heuristic.
@@ -104,7 +104,7 @@ func (b *Bin) Insert(box *Box) bool {
 
 // ScoreFor simulates placing the box and returns the score without modifying the bin.
 // It creates a copy of the box to avoid side effects.
-func (b *Bin) ScoreFor(box *Box) int64 {
+func (b *Bin) ScoreFor(box *Box) float64 {
 	// Create a copy to pass to the placement strategy, so the original box isn't modified.
 	// Assumes NewBox creates a clean copy with dimensions and rotation constraint.
 	copyBox := NewBox(box.Width, box.Height, box.ConstrainRotation)

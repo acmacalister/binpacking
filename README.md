@@ -71,7 +71,7 @@ func main() {
 	}
 
 	fmt.Printf("\nBin State:\n")
-	fmt.Printf("  Bin (%dx%d) contains %d boxes. Efficiency: %.2f%%\n",
+	fmt.Printf("  Bin (%fx%f) contains %d boxes. Efficiency: %.2f%%\n",
 		bin.Width, bin.Height, len(bin.Boxes), bin.Efficiency())
 	for i, box := range bin.Boxes {
 		fmt.Printf("    Box %d in bin: %s\n", i, box.Label())

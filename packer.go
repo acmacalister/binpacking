@@ -43,7 +43,7 @@ func NewPacker(bins []*Bin) *Packer {
 // Note: This method updates the Packer's UnpackedBoxes field with boxes that could not be placed.
 func (p *Packer) Pack(boxes []*Box, options PackerOptions) []*Box {
 	packedBoxes := make([]*Box, 0)
-	p.UnpackedBoxes = make([]*Box, 0) // Clear previous unpacked boxes from this packer instance
+	// We will calculate unpacked boxes at the end.
 
 	// 1. Filter out nil boxes and those already marked as packed.
 	boxesToPack := make([]*Box, 0, len(boxes))
@@ -55,6 +55,7 @@ func (p *Packer) Pack(boxes []*Box, options PackerOptions) []*Box {
 
 	// Return early if no boxes need packing.
 	if len(boxesToPack) == 0 {
+		p.UnpackedBoxes = make([]*Box, 0) // Ensure it's empty
 		return packedBoxes
 	}
 
@@ -70,16 +71,13 @@ func (p *Packer) Pack(boxes []*Box, options PackerOptions) []*Box {
 	for {
 		bestEntry := board.BestFit()
 
-		// If BestFit returns nil, no more boxes can be placed in any bin.
+		// If BestFit returns nil, no more *fitting* boxes can be placed in any bin.
 		if bestEntry == nil {
 			break // Exit the packing loop
 		}
 
 		// Safeguard: Ensure the best entry has valid Bin and Box pointers.
-		// This condition should ideally not be met if ScoreBoard is working correctly.
 		if bestEntry.Bin == nil || bestEntry.Box == nil {
-			// Log this anomaly if possible.
-			// fmt.Printf("Warning: BestFit returned entry with nil Bin (%v) or Box (%v)\n", bestEntry.Bin == nil, bestEntry.Box == nil)
 			// Attempt to remove the problematic box (if identifiable) from the board to prevent infinite loops.
 			if bestEntry.Box != nil {
 				board.RemoveBox(bestEntry.Box)
@@ -91,12 +89,9 @@ func (p *Packer) Pack(boxes []*Box, options PackerOptions) []*Box {
 		}
 
 		// Attempt to insert the chosen box into the chosen bin.
-		// The Bin.Insert method should handle the actual placement logic,
-		// update the bin's free spaces, and mark the box as Packed = true.
 		inserted := bestEntry.Bin.Insert(bestEntry.Box)
 
-		// If insertion failed (e.g., bin state changed concurrently, strategy strategy inconsistency),
-		// remove the box from consideration to avoid potential infinite loops.
+		// If insertion failed, remove the box from consideration.
 		if !inserted {
 			board.RemoveBox(bestEntry.Box)
 			continue // Try the next best fit
@@ -108,7 +103,7 @@ func (p *Packer) Pack(boxes []*Box, options PackerOptions) []*Box {
 		// Remove the now-packed box from the ScoreBoard so it's not considered again.
 		board.RemoveBox(bestEntry.Box)
 
-		// Recalculate scores for the bin that was just modified, as its free spaces changed.
+		// Recalculate scores for the bin that was just modified.
 		board.RecalculateBin(bestEntry.Bin)
 
 		// Check if the packing limit has been reached.
@@ -117,10 +112,21 @@ func (p *Packer) Pack(boxes []*Box, options PackerOptions) []*Box {
 		}
 	} // End packing loop
 
-	// 5. Determine which boxes remain unpacked.
-	// These are the boxes still present on the scoreboard after the loop.
-	// Note: CurrentBoxes() returns unique boxes remaining in scoreboard entries.
-	p.UnpackedBoxes = board.CurrentBoxes()
+	// 5. Determine which boxes remain unpacked by comparing the initial
+	//    list of boxes considered for packing with the list of successfully packed boxes.
+	packedBoxSet := make(map[*Box]struct{}, len(packedBoxes))
+	for _, packedBox := range packedBoxes {
+		packedBoxSet[packedBox] = struct{}{}
+	}
+
+	// Initialize/clear UnpackedBoxes for this run
+	p.UnpackedBoxes = make([]*Box, 0, len(boxesToPack)-len(packedBoxes))
+	for _, initialBox := range boxesToPack { // Iterate over boxes *considered* for packing
+		if _, wasPacked := packedBoxSet[initialBox]; !wasPacked {
+			// If a box from the initial 'toPack' list is NOT in the 'packed' set, it's unpacked.
+			p.UnpackedBoxes = append(p.UnpackedBoxes, initialBox)
+		}
+	}
 
 	return packedBoxes
 }

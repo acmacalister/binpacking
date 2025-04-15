@@ -33,10 +33,10 @@ func TestBin(t *testing.T) {
 		// Let's check placement assuming boxes[0] (50x50) was placed first. Adjust if needed.
 		if len(bin.Boxes) > 0 && bin.Boxes[0] == boxes[0] {
 			if bin.Boxes[0].X != 0 {
-				t.Errorf("Box 0 X: got %d, want %d", bin.Boxes[0].X, 0)
+				t.Errorf("Box 0 X: got %f, want %f", bin.Boxes[0].X, 0.0)
 			}
 			if bin.Boxes[0].Y != 0 {
-				t.Errorf("Box 0 Y: got %d, want %d", bin.Boxes[0].Y, 0)
+				t.Errorf("Box 0 Y: got %f, want %f", bin.Boxes[0].Y, 0.0)
 			}
 			if !bin.Boxes[0].Packed {
 				t.Errorf("Box 0 Packed: got %v, want %v", bin.Boxes[0].Packed, true)
@@ -44,10 +44,10 @@ func TestBin(t *testing.T) {
 		}
 		if len(bin.Boxes) > 1 && bin.Boxes[1] == boxes[1] { // Check second placed box (10x40)
 			if bin.Boxes[1].X != 50 { // Assuming placed next to 50x50
-				t.Errorf("Box 1 X: got %d, want %d", bin.Boxes[1].X, 50)
+				t.Errorf("Box 1 X: got %f, want %f", bin.Boxes[1].X, 50.0)
 			}
 			if bin.Boxes[1].Y != 0 {
-				t.Errorf("Box 1 Y: got %d, want %d", bin.Boxes[1].Y, 0)
+				t.Errorf("Box 1 Y: got %f, want %f", bin.Boxes[1].Y, 0.0)
 			}
 			if !bin.Boxes[1].Packed {
 				t.Errorf("Box 1 Packed: got %v, want %v", bin.Boxes[1].Packed, true)
@@ -74,10 +74,10 @@ func TestBin(t *testing.T) {
 		// Check remaining box state
 		if len(remainingBoxes) > 0 {
 			if remainingBoxes[0].X != 0 {
-				t.Errorf("Remaining Box X: got %d, want %d", remainingBoxes[0].X, 0)
+				t.Errorf("Remaining Box X: got %f, want %f", remainingBoxes[0].X, 0.0)
 			}
 			if remainingBoxes[0].Y != 0 {
-				t.Errorf("Remaining Box Y: got %d, want %d", remainingBoxes[0].Y, 0)
+				t.Errorf("Remaining Box Y: got %f, want %f", remainingBoxes[0].Y, 0.0)
 			}
 			if remainingBoxes[0].Packed {
 				t.Errorf("Remaining Box Packed: got %v, want %v", remainingBoxes[0].Packed, false)
@@ -97,7 +97,7 @@ func TestBin(t *testing.T) {
 			t.Errorf("Bin should contain 1 box after insertion, got %d", len(bin.Boxes))
 		}
 		if len(bin.Boxes) > 0 && (bin.Boxes[0].Width != 100 || bin.Boxes[0].Height != 50) {
-			t.Errorf("Box dimensions after insertion: got %dx%d, want %dx%d", bin.Boxes[0].Width, bin.Boxes[0].Height, 100, 50)
+			t.Errorf("Box dimensions after insertion: got %fx%f, want %dx%d", bin.Boxes[0].Width, bin.Boxes[0].Height, 100, 50)
 		}
 	})
 }
@@ -134,16 +134,16 @@ func TestPacker(t *testing.T) {
 			t.Errorf("Bin box pointer mismatch: got %p, want %p", bin1.Boxes[0], box)
 		}
 		if box.Width != 9000 {
-			t.Errorf("Box Width: got %d, want %d", box.Width, 9000)
+			t.Errorf("Box Width: got %f, want %f", box.Width, 9000.0)
 		}
 		if box.Height != 3000 {
-			t.Errorf("Box Height: got %d, want %d", box.Height, 3000)
+			t.Errorf("Box Height: got %f, want %f", box.Height, 3000.0)
 		}
 		if box.X != 0 {
-			t.Errorf("Box X: got %d, want %d", box.X, 0)
+			t.Errorf("Box X: got %f, want %f", box.X, 0.0)
 		}
 		if box.Y != 0 {
-			t.Errorf("Box Y: got %d, want %d", box.Y, 0)
+			t.Errorf("Box Y: got %f, want %f", box.Y, 0.0)
 		}
 		if !box.Packed {
 			t.Errorf("Box Packed: got %v, want %v", box.Packed, true)
@@ -167,16 +167,16 @@ func TestPacker(t *testing.T) {
 		}
 		// Check dimensions *after* packing - should be rotated
 		if box.Width != 9000 {
-			t.Errorf("Box Width after pack: got %d, want %d", box.Width, 9000)
+			t.Errorf("Box Width after pack: got %f, want %f", box.Width, 9000.0)
 		}
 		if box.Height != 1000 {
-			t.Errorf("Box Height after pack: got %d, want %d", box.Height, 1000)
+			t.Errorf("Box Height after pack: got %f, want %f", box.Height, 1000.0)
 		}
 		if box.X != 0 {
-			t.Errorf("Box X: got %d, want %d", box.X, 0)
+			t.Errorf("Box X: got %f, want %f", box.X, 0.0)
 		}
 		if box.Y != 0 {
-			t.Errorf("Box Y: got %d, want %d", box.Y, 0)
+			t.Errorf("Box Y: got %f, want %f", box.Y, 0.0)
 		}
 		if !box.Packed {
 			t.Errorf("Box Packed: got %v, want %v", box.Packed, true)
@@ -206,7 +206,7 @@ func TestPacker(t *testing.T) {
 		}
 		// Check dimensions were not rotated
 		if box.Width != 11000 || box.Height != 2000 {
-			t.Errorf("Box dimensions: got %dx%d, want %dx%d", box.Width, box.Height, 11000, 2000)
+			t.Errorf("Box dimensions: got %fx%f, want %fx%f", box.Width, box.Height, 11000.0, 2000.0)
 		}
 		if !box.Packed {
 			t.Errorf("Box Packed: got %v, want %v", box.Packed, true)
@@ -236,7 +236,7 @@ func TestPacker(t *testing.T) {
 			t.Errorf("Box2 Packed: got %v, want %v", box2.Packed, true)
 		}
 		if box2.Width != 9000 || box2.Height != 1000 { // Check rotation happened
-			t.Errorf("Box2 dimensions after pack: got %dx%d, want %dx%d", box2.Width, box2.Height, 9000, 1000)
+			t.Errorf("Box2 dimensions after pack: got %fx%f, want %fx%f", box2.Width, box2.Height, 9000.0, 1000.0)
 		}
 		if len(packer.UnpackedBoxes) != 0 {
 			t.Errorf("Unpacked box count: got %d, want %d", len(packer.UnpackedBoxes), 0)
@@ -447,7 +447,7 @@ func TestPacker(t *testing.T) {
 				t.Logf("Note: Bin2 Box1 label mismatch: got %q, want %q", bin2.Boxes[0].Label(), box1Label)
 			}
 			if bin2.Boxes[0].X != 0 || bin2.Boxes[0].Y != 0 {
-				t.Errorf("Box 1 position in Bin 2: got [%d,%d], want [0,0]", bin2.Boxes[0].X, bin2.Boxes[0].Y)
+				t.Errorf("Box 1 position in Bin 2: got [%f,%f], want [0,0]", bin2.Boxes[0].X, bin2.Boxes[0].Y)
 			}
 		}
 

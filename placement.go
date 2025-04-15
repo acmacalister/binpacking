@@ -9,14 +9,14 @@ import (
 type PlacementInfo struct {
 	// Score represents the quality of the placement, calculated by a PlacementStrategyFunc.
 	// Lower scores generally indicate better fits. A score of math.MaxInt64 indicates no fit.
-	Score int64
+	Score float64
 	// ChosenSpace is a pointer to the specific FreeSpaceBox where the placement should occur.
 	// Will be nil if Fits is false.
 	ChosenSpace *FreeSpaceBox
 	// X is the calculated horizontal coordinate for the top-left corner of the box.
-	X int64
+	X float64
 	// Y is the calculated vertical coordinate for the top-left corner of the box.
-	Y int64
+	Y float64
 	// NeedsRotation indicates whether the box's width and height should be swapped for this placement.
 	NeedsRotation bool
 	// Fits indicates whether a suitable placement satisfying the strategy was found.
@@ -26,7 +26,7 @@ type PlacementInfo struct {
 // PlacementStrategyFunc defines the signature for functions that calculate a score
 // indicating how well a rectangle of given dimensions fits into a specific FreeSpaceBox.
 // Lower scores are considered better fits. The returned score is a single int64 value.
-type PlacementStrategyFunc func(freeSpace *FreeSpaceBox, rectWidth, rectHeight int64) int64
+type PlacementStrategyFunc func(freeSpace *FreeSpaceBox, rectWidth, rectHeight float64) float64
 
 // FindBestPlacement iterates through available free spaces to find the best possible
 // position for a given Box, according to the provided PlacementStrategyFunc.
@@ -43,8 +43,8 @@ type PlacementStrategyFunc func(freeSpace *FreeSpaceBox, rectWidth, rectHeight i
 //	A PlacementInfo struct containing details of the best fit found.
 //	If no fit is possible, PlacementInfo.Fits will be false and Score will be math.MaxInt64.
 func FindBestPlacement(box *Box, freeSpaces []*FreeSpaceBox, placement PlacementStrategyFunc) PlacementInfo {
-	// Initialize with worst possible score and Fits=false
-	bestInfo := PlacementInfo{Score: math.MaxInt64, Fits: false}
+	// Initialize with worst possible score (using float64 max) and Fits=false
+	bestInfo := PlacementInfo{Score: math.MaxFloat64, Fits: false} // <--- FIX HERE
 
 	for _, freeSpace := range freeSpaces {
 		// Try placing the box in its original orientation
@@ -88,11 +88,11 @@ func FindBestPlacement(box *Box, freeSpaces []*FreeSpaceBox, placement Placement
 // It scores placements by minimizing the leftover area in the free space after placing
 // the rectangle. As a tie-breaker, it adds the 'short side fit' (the smaller
 // of the horizontal or vertical leftover dimensions). Lower scores are better.
-func BestAreaFit(freeSpace *FreeSpaceBox, rectWidth, rectHeight int64) int64 {
+func BestAreaFit(freeSpace *FreeSpaceBox, rectWidth, rectHeight float64) float64 {
 	areaFit := freeSpace.Width*freeSpace.Height - rectWidth*rectHeight
-	leftOverHoriz := abs(freeSpace.Width - rectWidth)
-	leftOverVert := abs(freeSpace.Height - rectHeight)
-	shortSideFit := min(leftOverHoriz, leftOverVert)
+	leftOverHoriz := math.Abs(freeSpace.Width - rectWidth)
+	leftOverVert := math.Abs(freeSpace.Height - rectHeight)
+	shortSideFit := math.Min(leftOverHoriz, leftOverVert)
 	// Combine area fit and short side fit into a single score
 	return areaFit + shortSideFit
 }
@@ -102,9 +102,9 @@ func BestAreaFit(freeSpace *FreeSpaceBox, rectWidth, rectHeight int64) int64 {
 // (horizontal gap + vertical gap) in the free space. Lower scores are better.
 // Note: This differs from some BSSF implementations that prioritize minimizing the
 // smaller gap first, then the larger gap as a tie-breaker (lexicographical score).
-func BestShortSideFit(freeSpace *FreeSpaceBox, rectWidth, rectHeight int64) int64 {
-	leftOverHoriz := abs(freeSpace.Width - rectWidth)
-	leftOverVert := abs(freeSpace.Height - rectHeight)
+func BestShortSideFit(freeSpace *FreeSpaceBox, rectWidth, rectHeight float64) float64 {
+	leftOverHoriz := math.Abs(freeSpace.Width - rectWidth)
+	leftOverVert := math.Abs(freeSpace.Height - rectHeight)
 	// Return the sum of the horizontal and vertical gaps
 	return leftOverHoriz + leftOverVert
 }
@@ -115,42 +115,18 @@ func BestShortSideFit(freeSpace *FreeSpaceBox, rectWidth, rectHeight int64) int6
 // Note: Due to the single int64 return type limitation, the secondary tie-breaker
 // (minimizing the short side fit) cannot be directly incorporated into the score
 // for lexicographical comparison. This implementation returns only the long side fit value.
-func BestLongSideFit(freeSpace *FreeSpaceBox, rectWidth, rectHeight int64) int64 {
-	leftOverHoriz := abs(freeSpace.Width - rectWidth)
-	leftOverVert := abs(freeSpace.Height - rectHeight)
+func BestLongSideFit(freeSpace *FreeSpaceBox, rectWidth, rectHeight float64) float64 {
+	leftOverHoriz := math.Abs(freeSpace.Width - rectWidth)
+	leftOverVert := math.Abs(freeSpace.Height - rectHeight)
 	// Return the larger gap (long side fit) as the score.
-	return max(leftOverHoriz, leftOverVert)
+	return math.Max(leftOverHoriz, leftOverVert)
 }
 
 // BottomLeft implements the PlacementStrategyFunc interface.
 // It scores placements based on a combination of the free space's top-left corner (X, Y)
 // and the height of the rectangle being placed. It aims to minimize Y + X + rectHeight.
 // Lower scores indicate preferred placements (lower, then left-er, considering height).
-func BottomLeft(freeSpace *FreeSpaceBox, rectWidth, rectHeight int64) int64 {
+func BottomLeft(freeSpace *FreeSpaceBox, rectWidth, rectHeight float64) float64 {
 	// Score prioritizes lower Y, then lower X, then lower rectangle height?
 	return freeSpace.Y + freeSpace.X + rectHeight
-}
-
-// abs returns the absolute value of x.
-func abs(x int64) int64 {
-	if x < 0 {
-		return -x
-	}
-	return x
-}
-
-// min returns the smaller of x or y.
-func min(x, y int64) int64 {
-	if x < y {
-		return x
-	}
-	return y
-}
-
-// max returns the larger of x or y.
-func max(x, y int64) int64 {
-	if x > y {
-		return x
-	}
-	return y
 }
